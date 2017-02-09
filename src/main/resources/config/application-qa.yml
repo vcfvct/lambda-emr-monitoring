@@ -1,0 +1,9 @@
+hive:
+  url: rcemr.qc.aws.finra.org
+
+rc:
+  reloadScript: s3://1422-4800-0760-application-qa-staging/RC/QAV/hive-scripts/restart-hive.sh
+
+email:
+  host: 10.162.0.8
+  to: han.li@finra.org

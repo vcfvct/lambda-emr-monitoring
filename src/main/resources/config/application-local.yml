@@ -1,0 +1,10 @@
+hive:
+  url: internal-AWSLBRCED01-1583818078.us-east-1.elb.amazonaws.com
+  password: RcH!vePw
+
+rc:
+  reloadScript: s3://4652-5751-2377-application-dev-staging/RC/DEV/hive-scripts/restart-hive.sh
+
+email:
+  host: 10.162.0.8
+  to: han.li@finra.org

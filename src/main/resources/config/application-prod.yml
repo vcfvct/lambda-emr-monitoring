@@ -1,0 +1,9 @@
+hive:
+  url: rcemr.aws.finra.org
+
+rc:
+  reloadScript: s3://5101-9919-3688-application-prod-staging/RC/PROD/hive-scripts/restart-hive.sh
+
+email:
+  host: 10.162.0.8
+  to: dl-rcteam_dev@finra.org

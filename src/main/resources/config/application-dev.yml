@@ -1,0 +1,10 @@
+hive:
+  url: internal-AWSLBRCED01-1583818078.us-east-1.elb.amazonaws.com
+
+rc:
+  reloadScript: s3://4652-5751-2377-application-dev-staging/RC/DEV/hive-scripts/restart-hive.sh
+
+email:
+  # this is ip of mailhost.dev.aws.finra.org, we use ip here because Lambda does not have the finra's DNS.
+  host: 10.162.0.8
+  to: han.li@finra.org

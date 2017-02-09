@@ -1,0 +1,11 @@
+rc:
+  clusterName: RC.HIVE.ADHOC
+
+hive:
+  username: rcapp
+
+aws:
+  scriptRunJar: s3://elasticmapreduce/libs/script-runner/script-runner.jar
+
+email:
+  from: reportcenter-admin@finra.org
