@@ -2,6 +2,12 @@ package org.finra.rc.checkhive.service;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduce;
@@ -26,7 +32,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import org.finra.rc.checkhive.LambdaApp;
 import org.finra.rc.checkhive.common.EnvProfile;
 
 /**
@@ -35,7 +40,8 @@ import org.finra.rc.checkhive.common.EnvProfile;
 @Service
 public class EmrServiceImpl implements EmrService
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LambdaApp.class);
+//    private static final Logger LOGGER = LoggerFactory.getLogger("splunk.logger");
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmrServiceImpl.class);
 
     public static final String FAILED = "Step Failed";
 
@@ -46,6 +52,8 @@ public class EmrServiceImpl implements EmrService
     @Qualifier("hiveJdbcTemplate")
     private JdbcTemplate hiveJdbcTemplate;
 
+    private int timeoutInSec = 10;
+
     @Override
     //for a random backoff between 2s and 5s milliseconds and up to 2 attempts
     @Retryable(maxAttempts = 2, backoff = @Backoff(delay=2000, maxDelay = 5000))
@@ -53,13 +61,30 @@ public class EmrServiceImpl implements EmrService
     {
         String query = "show databases";
         LOGGER.info("Ready to run query: " + query);
-        hiveJdbcTemplate.query(query, rs -> {
-            if (rs.next())
-            {
-                LOGGER.info(rs.getString("database_name"));
-            }
-            return null;
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        final Future future = executor.submit(() -> {
+            hiveJdbcTemplate.query(query, rs -> {
+                if (rs.next())
+                {
+                    LOGGER.info(rs.getString("database_name"));
+                }
+                return null;
+            });
         });
+        executor.shutdown();
+        try {
+            future.get(timeoutInSec, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException | ExecutionException ex) {
+            String msg = "Execution Failed: " + ex.getMessage();
+            LOGGER.error(msg);
+            throw new RuntimeException(msg);
+        }
+        catch (TimeoutException ie) {
+            LOGGER.error("Error Getting result in {} seconds.", timeoutInSec);
+            throw new RuntimeException("Query Timed out.");
+        }
+
         LOGGER.info("Query finished. Quit....");
     }
 
